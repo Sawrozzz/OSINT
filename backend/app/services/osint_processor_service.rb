@@ -1,7 +1,7 @@
 class OsintProcessorService
     ADAPTERS = [
       Social::GithubAdapter,
-      # Social::RedditAdapter,
+      Social::RedditAdapter,
       Technical::WhoisAdapter,
       Technical::DnsDumpsterAdapter,
       News::NewsAdapter
