@@ -51,7 +51,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
     });
   }, [results]);
 
-  // 🎨 HELPERS
   const getRiskColor = (risk?: string) => {
     switch (risk?.toLowerCase()) {
       case "high":
@@ -123,7 +122,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
             <p className="text-xs uppercase tracking-widest text-emerald-400">
               {targetType} • {formatToNepalTime(new Date())}
             </p>
-            <h2 className="text-4xl font-bold text-white">{query}</h2>
+            <h2 className="text-4xl font-bold text-white capitalize">{query}</h2>
           </div>
 
           {/* SUMMARY */}

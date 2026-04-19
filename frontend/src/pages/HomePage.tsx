@@ -24,7 +24,7 @@ const DATA_SOURCES = [
   {
     category: "News",
     color: "text-purple-400",
-    sources: ["News APIs"],
+    sources: ["News APIs", "Hacker News"],
   },
 ];
 
