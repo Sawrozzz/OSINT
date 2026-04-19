@@ -18,9 +18,9 @@ module Api
 
         def destroy_all
           if Search.destroy_all
-            render json: { 
-              status: "success", 
-              message: "Intelligence archive purged successfully" 
+            render json: {
+              status: "success",
+              message: "Intelligence archive purged successfully"
             }, status: :ok
           else
             render json: { status: "error", message: "Failed to clear archive" }, status: :internal_server_error
