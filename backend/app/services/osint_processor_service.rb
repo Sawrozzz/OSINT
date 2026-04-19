@@ -1,11 +1,10 @@
 class OsintProcessorService
     ADAPTERS = [
       Social::GithubAdapter,
-
-      # Social::RedditAdapter,
-      # Technical::WhoisAdapter,
-      # Technical::DnsDumpsterAdapter,
-      # News::NewsAdapter
+      Social::RedditAdapter,
+      Technical::WhoisAdapter,
+      Technical::DnsDumpsterAdapter,
+      News::NewsAdapter,
       News::HackerNewsAdapter
     ].freeze
 
