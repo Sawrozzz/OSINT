@@ -4,7 +4,7 @@ module Api
         def create
             search = Search.new(search_params)
             if search.save
-              OsintSearchJob.perfrom_now(search.id)
+              OsintSearchJob.perform_now(search.id)
               render json: { id: search.id, status: search.status, target_type: search.target_type, message: "Search initiated" }, status: :accepted
             else
                 render json: { errors: search.errors.full_messages }, status: :unprocessable_entity
