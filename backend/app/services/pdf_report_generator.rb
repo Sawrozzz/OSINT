@@ -57,7 +57,7 @@ class PdfReportGenerator
           pdf.move_down 6
 
           # --- Table ---
-          table_data = [["Field", "Value"]] + result.data.map do |key, value|
+          table_data = [ [ "Field", "Value" ] ] + result.data.map do |key, value|
             [
               key.to_s.humanize,
               value.to_s.encode("UTF-8", invalid: :replace, undef: :replace, replace: "?")
@@ -93,7 +93,7 @@ class PdfReportGenerator
       # ===== FOOTER =====
       pdf.number_pages(
         "Page <page> of <total>",
-        at: [pdf.bounds.right - 100, 0],
+        at: [ pdf.bounds.right - 100, 0 ],
         size: 8,
         color: "9CA3AF"
       )

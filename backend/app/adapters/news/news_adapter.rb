@@ -1,4 +1,3 @@
-# app/adapters/contextual/news_adapter.rb
 module News
     class NewsAdapter < BaseAdapter
       def fetch
