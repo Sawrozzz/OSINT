@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import type { TargetType, ScanResult } from "../types/osint";
 import {
   FileDown,
@@ -9,6 +9,7 @@ import {
   ChevronUp,
   Database,
 } from "lucide-react";
+import { formatToNepalTime } from "../utils/formatUtils";
 
 interface ResultsPageProps {
   query: string;
@@ -29,8 +30,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
   onDownloadPDF,
   onDownloadMarkdown,
 }) => {
-  const showExportButtons = results.length > 0 && !loading;
-
   const [expandedDetails, setExpandedDetails] = useState<
     Record<number, boolean>
   >({});
@@ -39,204 +38,242 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
     setExpandedDetails((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const showExportButtons = results.length > 0 && !loading;
+
+  // 🔥 SORT RESULTS (signal first)
+  const sortedResults = useMemo(() => {
+    return [...results].sort((a, b) => {
+      return (
+        b.confidence_score - a.confidence_score ||
+        (b.relevance_level === "High" ? 1 : 0) -
+        (a.relevance_level === "High" ? 1 : 0)
+      );
+    });
+  }, [results]);
+
+  // 🎨 HELPERS
+  const getRiskColor = (risk?: string) => {
+    switch (risk?.toLowerCase()) {
+      case "high":
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "medium":
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+      default:
+        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+    }
+  };
+
+  const getRelevanceColor = (level?: string) => {
+    switch (level?.toLowerCase()) {
+      case "high":
+        return "text-emerald-400";
+      case "medium":
+        return "text-yellow-400";
+      default:
+        return "text-slate-500";
+    }
+  };
+
+  const getConfidenceColor = (score?: number) => {
+    if (!score) return "text-slate-500";
+    if (score > 0.8) return "text-emerald-400";
+    if (score > 0.5) return "text-yellow-400";
+    return "text-red-400";
+  };
+
   return (
-    <div className="min-h-screen bg-[#05080a] text-slate-300 font-sans selection:bg-emerald-500/20">
-      <nav className="border-b border-slate-900 sticky top-0 bg-[#05080a]/80 backdrop-blur-xl z-50">
+    <div className="min-h-screen bg-[#0b1220] text-slate-300 font-sans">
+      {/* NAV */}
+      <nav className="border-b border-slate-800 sticky top-0 bg-[#0b1220]/80 backdrop-blur z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button
             onClick={onBackClick}
-            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-slate-400 hover:text-white transition"
           >
-            <ArrowLeft size={16} />{" "}
+            <ArrowLeft size={16} />
             <span className="text-xs font-bold uppercase tracking-widest">
               New search
             </span>
           </button>
 
-          <div className="flex gap-3">
-            {showExportButtons && (
-              <>
-                <button
-                  onClick={onDownloadMarkdown}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 rounded-lg text-xs font-bold border border-slate-800 transition"
-                >
-                  <FileText size={14} /> Markdown
-                </button>
-                <button
-                  onClick={onDownloadPDF}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black rounded-lg text-xs font-bold transition"
-                >
-                  <FileDown size={14} /> PDF Report
-                </button>
-              </>
-            )}
-          </div>
+          {showExportButtons && (
+            <div className="flex gap-3">
+              <button
+                onClick={onDownloadMarkdown}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold border border-slate-700"
+              >
+                <FileText size={14} /> Markdown
+              </button>
+              <button
+                onClick={onDownloadPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black rounded-lg text-xs font-bold"
+              >
+                <FileDown size={14} /> PDF
+              </button>
+            </div>
+          )}
         </div>
       </nav>
 
+      {/* MAIN */}
       <main className="max-w-6xl mx-auto p-6 md:p-12 space-y-12">
+        {/* HEADER */}
         <header className="space-y-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">
-              <span>{targetType}</span>
-              <span className="w-1 h-1 rounded-full bg-slate-800" />
-              <span>{new Date().toLocaleDateString()}</span>
-            </div>
-            <h2 className="text-5xl font-bold text-white tracking-tight">
-              {query}
-            </h2>
+          <div>
+            <p className="text-xs uppercase tracking-widest text-emerald-400">
+              {targetType} • {formatToNepalTime(new Date())}
+            </p>
+            <h2 className="text-4xl font-bold text-white">{query}</h2>
           </div>
 
-          <div className="flex gap-8 border-y border-slate-900 py-6 font-mono">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-600 uppercase">
-                Findings
-              </p>
+          {/* SUMMARY */}
+          <div className="grid grid-cols-3 gap-6 border-y border-slate-800 py-6 font-mono">
+            <div>
+              <p className="text-xs text-slate-500">Findings</p>
               <p className="text-xl font-bold text-white">{results.length}</p>
             </div>
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-600 uppercase">
-                Confidence
-              </p>
-              <p className="text-xl font-bold text-white">
+            <div>
+              <p className="text-xs text-slate-500">High Confidence</p>
+              <p className="text-xl font-bold text-emerald-400">
                 {results.filter((r) => r.confidence_score > 0.8).length}
               </p>
             </div>
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-600 uppercase">
-                Risks
-              </p>
-              <p className="text-xl font-bold text-white">
+            <div>
+              <p className="text-xs text-slate-500">High Risk</p>
+              <p className="text-xl font-bold text-red-400">
                 {results.filter((r) => r.data.risk_factor === "High").length}
               </p>
             </div>
           </div>
         </header>
 
+        {/* RESULTS */}
         {["Technical", "News", "Social"].map((catName) => {
-          const categoryResults = results.filter((r) =>
-            r.category.toLowerCase().includes(catName.toLowerCase()),
+          const categoryResults = sortedResults.filter((r) =>
+            r.category.toLowerCase().includes(catName.toLowerCase())
           );
-          if (categoryResults.length === 0 && !loading) return null;
+          if (!categoryResults.length && !loading) return null;
 
           return (
             <section key={catName} className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-1 h-6 bg-emerald-500 rounded-full" />
-                <h3 className="text-lg font-bold text-white uppercase tracking-widest">
-                  {catName} Intelligence <span>{categoryResults.length}</span>
-                </h3>
-              </div>
+              <h3 className="text-lg font-semibold text-white border-l-4 border-emerald-500 pl-3">
+                {catName} Intelligence ({categoryResults.length})
+              </h3>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid gap-4">
                 {categoryResults.map((res) => (
                   <div
                     key={res.id}
-                    className="group bg-slate-900/10 border border-slate-900 rounded-2xl transition-all overflow-hidden hover:border-slate-800"
+                    className="bg-[#111827] border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition"
                   >
-                    {/* Card Header Content */}
-                    <div className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex gap-2">
-                          <span className="px-2 py-0.5 rounded bg-slate-800 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            {res.source}
+                    {/* HEADER */}
+                    <div className="flex justify-between mb-3">
+                      <div className="flex gap-2 items-center">
+                        <span className="text-xs bg-slate-800 px-2 py-0.5 rounded">
+                          {res.source}
+                        </span>
+
+                        {res.data.risk_factor && (
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded border ${getRiskColor(
+                              res.data.risk_factor
+                            )}`}
+                          >
+                            {res.data.risk_factor} Risk
                           </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {res.data.url ||
-                          res.data.link ||
-                          res.data.profile_url ||
-                          res.data.hostname ? (
-                            <a
-                              href={
-                                res.data.url ||
-                                res.data.link ||
-                                res.data.profile_url ||
-                                `https://${res.data.hostname}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-slate-600 hover:text-emerald-400 transition-colors"
-                            >
-                              <ExternalLink size={16} />
-                            </a>
-                          ) : null}
-                        </div>
+                        )}
                       </div>
 
-                      <h4 className="text-xl font-bold text-white mb-2">
-                        {res.data.title ||
-                          res.data.hostname ||
-                          res.data.username ||
-                          "Data Point"}
-                      </h4>
-                      <p className="text-sm text-slate-500 leading-relaxed max-w-3xl">
-                        {res.data.description ||
-                          res.data.text ||
-                          "No summary provided."}
-                      </p>
-                    </div>
-
-                    {/* FAQ / ACCORDION SECTION */}
-                    <div className="border-t border-slate-900 bg-black/20">
-                      <button
-                        onClick={() => toggleDetails(res.id)}
-                        className="w-full px-6 py-4 flex items-center justify-between text-xs font-bold text-slate-500 hover:text-emerald-400 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 uppercase tracking-widest text-[10px]">
-                          <Database size={14} />
-                          {expandedDetails[res.id]
-                            ? "Hide Technical Attributes"
-                            : "View Technical Attributes"}
-                        </div>
-                        {expandedDetails[res.id] ? (
-                          <ChevronUp size={16} />
-                        ) : (
-                          <ChevronDown size={16} />
+                      {(res.data.url ||
+                        res.data.profile_url ||
+                        res.data.hostname) && (
+                          <a
+                            href={
+                              res.data.url ||
+                              res.data.profile_url ||
+                              `https://${res.data.hostname}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink size={16} />
+                          </a>
                         )}
-                      </button>
-
-                      {expandedDetails[res.id] && (
-                        <div className="px-6 pb-6 pt-2 animate-in slide-in-from-top-2 duration-200">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {Object.entries(res.data).map(([key, value]) => {
-                              if (
-                                [
-                                  "title",
-                                  "description",
-                                  "text",
-                                  "url",
-                                  "link",
-                                  "risk_factor",
-                                  "hostname",
-                                  "username",
-                                  "profile_url",
-                                ].includes(key)
-                              )
-                                return null;
-                              if (value === null || value === undefined)
-                                return null;
-
-                              return (
-                                <div
-                                  key={key}
-                                  className="bg-slate-900/40 p-3 rounded-xl border border-slate-800/50"
-                                >
-                                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-tighter mb-1">
-                                    {key.replace(/_/g, " ")}
-                                  </p>
-                                  <p className="text-[11px] text-slate-300 font-mono break-all">
-                                    {typeof value === "object"
-                                      ? JSON.stringify(value)
-                                      : String(value)}
-                                  </p>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
+
+                    <h4 className="text-lg font-semibold text-white">
+                      {res.data.title ||
+                        res.data.hostname ||
+                        res.data.username ||
+                        "Data Point"}
+                    </h4>
+
+                    <div className="flex gap-4 text-xs font-mono mt-1 mb-2">
+                      <span className={getConfidenceColor(res.confidence_score)}>
+                        {(res.confidence_score * 100).toFixed(0)}% Confidence
+                      </span>
+                      <span className={getRelevanceColor(res.relevance_level)}>
+                        {res.relevance_level} Relevance
+                      </span>
+                    </div>
+
+                    <p className="text-sm text-slate-400">
+                      {res.data.description ||
+                        res.data.text ||
+                        "No summary available"}
+                    </p>
+
+                    <button
+                      onClick={() => toggleDetails(res.id)}
+                      className="mt-4 text-xs text-slate-500 hover:text-emerald-400 flex items-center gap-2"
+                    >
+                      <Database size={14} />
+                      {expandedDetails[res.id]
+                        ? "Hide Details"
+                        : "View Details"}
+                      {expandedDetails[res.id] ? (
+                        <ChevronUp size={14} />
+                      ) : (
+                        <ChevronDown size={14} />
+                      )}
+                    </button>
+
+                    {expandedDetails[res.id] && (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                        {Object.entries(res.data).map(([key, value]) => {
+                          if (
+                            [
+                              "title",
+                              "description",
+                              "text",
+                              "url",
+                              "link",
+                              "risk_factor",
+                              "hostname",
+                              "username",
+                              "profile_url",
+                            ].includes(key)
+                          )
+                            return null;
+
+                          return (
+                            <div
+                              key={key}
+                              className="bg-slate-900 p-2 rounded text-xs"
+                            >
+                              <p className="text-slate-500 uppercase">
+                                {key}
+                              </p>
+                              <p className="text-slate-300 break-all">
+                                {typeof value === "object"
+                                  ? JSON.stringify(value)
+                                  : String(value)}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -245,15 +282,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
         })}
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500 animate-pulse">
-              Decrypting Source Stream
-            </p>
+          <div className="text-center py-20 text-emerald-400 text-sm animate-pulse">
+            Processing intelligence...
           </div>
         )}
       </main>
     </div>
   );
 };
+
 export default ResultsPage;

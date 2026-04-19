@@ -26,12 +26,12 @@ module Api
 
               format.md do
                 markdown = ReportGeneratorService.to_markdown(search.id)
-                send_data markdown, filename: "osint-report-#{search.id}.md", type: "text/markdown"
+                send_data markdown, filename: "osint-report-#{search.query}-#{search.id}.md", type: "text/markdown"
               end
 
               format.pdf do
                 pdf_data = PdfReportGenerator.generate(search.id)
-                send_data pdf_data, filename: "osint-report-#{search.id}.pdf", type: "application/pdf", disposition: "attachment"
+                send_data pdf_data, filename: "osint-report-##{search.query}-#{search.id}.pdf", type: "application/pdf", disposition: "attachment"
               end
             end
         end
