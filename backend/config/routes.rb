@@ -14,6 +14,9 @@ Rails.application.routes.draw do
 
   namespace :api do
       resources :searches, only: [ :create, :show ] do
+        collection do
+          delete :destroy_all
+        end
         member do
           get :report
         end

@@ -16,6 +16,17 @@ module Api
             render json: search.as_json(include: :results)
         end
 
+        def destroy_all
+          if Search.destroy_all
+            render json: { 
+              status: "success", 
+              message: "Intelligence archive purged successfully" 
+            }, status: :ok
+          else
+            render json: { status: "error", message: "Failed to clear archive" }, status: :internal_server_error
+          end
+        end
+
         def report
             search = Search.find(params[:id])
 
