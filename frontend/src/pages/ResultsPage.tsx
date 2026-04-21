@@ -40,7 +40,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
 
   const showExportButtons = results.length > 0 && !loading;
 
-  // 🔥 SORT RESULTS (signal first)
   const sortedResults = useMemo(() => {
     return [...results].sort((a, b) => {
       return (
@@ -82,7 +81,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
 
   return (
     <div className="min-h-screen bg-[#0b1220] text-slate-300 font-sans">
-      {/* NAV */}
       <nav className="border-b border-slate-800 sticky top-0 bg-[#0b1220]/80 backdrop-blur z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button
@@ -114,9 +112,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
         </div>
       </nav>
 
-      {/* MAIN */}
       <main className="max-w-6xl mx-auto p-6 md:p-12 space-y-12">
-        {/* HEADER */}
         <header className="space-y-6">
           <div>
             <p className="text-xs uppercase tracking-widest text-emerald-400">
@@ -125,7 +121,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
             <h2 className="text-4xl font-bold text-white capitalize">{query}</h2>
           </div>
 
-          {/* SUMMARY */}
           <div className="grid grid-cols-3 gap-6 border-y border-slate-800 py-6 font-mono">
             <div>
               <p className="text-xs text-slate-500">Findings</p>
@@ -146,7 +141,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
           </div>
         </header>
 
-        {/* RESULTS */}
         {["Technical", "News", "Social"].map((catName) => {
           const categoryResults = sortedResults.filter((r) =>
             r.category.toLowerCase().includes(catName.toLowerCase())
@@ -165,7 +159,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
                     key={res.id}
                     className="bg-[#111827] border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition"
                   >
-                    {/* HEADER */}
                     <div className="flex justify-between mb-3">
                       <div className="flex gap-2 items-center">
                         <span className="text-xs bg-slate-800 px-2 py-0.5 rounded">
